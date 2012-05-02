@@ -1,12 +1,19 @@
-smCore repository
+smCore and SMF 3.0 repository
 
 ---------------------------------------------------------------------
 
-This repository is the official development repository of smCore project, a Simple Machines project designed to be the core framework upon which SMF 3.0 is being built. The library will be included in SMF 3.0.
+This repository holds smCore, SMF 3.0, auth module, and other modules needed to build SMF 3.0.
+By installing it, you should get a complete installation of SMF 3.0, plus a few development tools, such as an external library used as unit testing framework.
+
+
+smCore
+------
+
+smCore repository is a Simple Machines project designed to be the core framework upon which SMF 3.0 is being built. The library will be included in SMF 3.0.
 
 This software is being developed with an Open Development model, driven by the SMF community and contributors.
 
-SMF 3.0 will also be developed with an Open Development model, using both Github tools and home-installed tools. The official Github repository will be found here: https://github.com/SimpleMachines/Simple-Machines-Forum
+SMF 3.0 will also be developed with an Open Development model, using both Github tools and home-installed tools.
 
 Goals:
 The smCore project will be working to develop a platform for development of future versions of SMF, allowing easy interaction with other large modules such as a blog, portal or CMS, gallery, and other large and desirable parts, of a community-based website.
@@ -96,3 +103,26 @@ Included libraries at this time:
 library/smTE
 library/Inspekt
 library/sfYaml
+
+------------------------------------------------------------------------------
+
+SMF 3.0 forum module
+--------------------
+
+SMF 3.0 forum module is in the /modules directory. SMF 3.0 forum module is pulled in this repository from its official
+location, for a direct and easy to use installation of all components needed to build SMF 3.0.
+
+auth module
+-----------
+
+The auth module is in the /modules directory. It will be developed and made available separately from SMF as well.
+
+admin module
+------------
+
+The admin module is in the /modules directory. It will also be available separately from SMF as well.
+
+home module
+-----------
+
+The home module is a simple homepage module, for use and for testing, with smCore and other modules.
