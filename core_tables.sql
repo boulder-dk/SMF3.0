@@ -125,37 +125,5 @@ VALUES
 	(1, 'Default', 'default', 'DefaultTheme');
 
 # ------------------------------------------------------------------
-# Users
-
-DROP TABLE IF EXISTS `users`;
-
-CREATE TABLE `users` (
-  `id_user` int(8) unsigned NOT NULL AUTO_INCREMENT,
-  `user_login` varchar(45) NOT NULL,
-  `user_pass` varchar(64) NOT NULL,
-  `user_primary_role` smallint(4) unsigned NOT NULL DEFAULT '0',
-  `user_display_name` varchar(50) NOT NULL,
-  `user_given_name` varchar(50) NOT NULL,
-  `user_email` varchar(255) NOT NULL,
-  `user_registered` int(10) unsigned NOT NULL DEFAULT '0',
-  `user_token` varchar(32) NOT NULL,
-  `user_active` tinyint(1) unsigned NOT NULL DEFAULT '1',
-  `user_additional_roles` varchar(255) NOT NULL DEFAULT '',
-  `user_language` varchar(255) NOT NULL,
-  UNIQUE KEY `id_user` (`id_user`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-# ------------------------------------------------------------------
-
-DROP TABLE IF EXISTS `sessions`;
-
-CREATE TABLE `sessions` (
-  `session_id` char(32) NOT NULL,
-  `last_update` int(10) unsigned NOT NULL,
-  `data` text NOT NULL,
-  PRIMARY KEY (session_id)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-# ------------------------------------------------------------------
 
 SET FOREIGN_KEY_CHECKS = 1;
