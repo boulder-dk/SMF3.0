@@ -16,7 +16,7 @@
  *
  * The Initial Developer of the Original Code is the smCore project.
  *
- * Portions created by the Initial Developer are Copyright (C) 2011
+ * Portions created by the Initial Developer are Copyright (C) 2012
  * the Initial Developer. All Rights Reserved.
  *
  * @version 1.0 alpha
@@ -26,22 +26,23 @@
 namespace smCore;
 
 use smCore\Request, smCore\Url, smCore\ModuleRegistry, smCore\DefaultAutoloader, smCore\Language,
-    smCore\model\User, smCore\AccessManager, smCore\Router, smCore\API, smCore\events\EventDispatcher,
-    smCore\model\Storage, smCore\security\Session, smCore\views\ViewManager, \Settings;
+	 smCore\model\User, smCore\AccessManager, smCore\Router, smCore\events\EventDispatcher,
+	 smCore\storage\Storage, smCore\security\Session, smCore\views\View, smCore\views\ViewLoader,
+	 smCore\BrowserDetector, \Settings;
 
 /**
  * This is the bootstrap class of the platform.
  * It takes care of loading the absolutely needed, and then it delegates control to
- * the specific action handler. The action handler could be a controller of a module,
- * or a handler of an external API call. (at this time)
+ * the specific action handler. The action handler is a controller from a module.
  *
  */
-class Application
-{
+class Application {
+
 	/**
-	 *Singleton pattern instance
+	 * Singleton pattern instance
 	 */
 	private static $_instance = null;
+
 	/**
 	 * The application boots only once.
 	 * @var bool=false
@@ -49,18 +50,18 @@ class Application
 	private static $_hasBooted = false;
 	// remove the registry.
 	private static $_registry = array();
-
 	private static $_cache = null;
 	private $_request = null;
 	private $_response = null;
 	public $_dispatcher = null;
-
 	public $_context = array();
-
 	public $_time = 0;
 	private static $_start_time = 0;
 
-	private function __clone(){}
+	private function __clone()
+	{
+
+	}
 
 	/**
 	 * @static
@@ -101,7 +102,7 @@ class Application
 		self::$_hasBooted = true;
 
 		// Register things... autoloader
-		include_once(__DIR__ . '/DefaultAutoloader.php');
+		require_once(__DIR__ . '/DefaultAutoloader.php');
 		DefaultAutoloader::register();
 
 		// Error handler...
@@ -111,6 +112,8 @@ class Application
 		// Exception handler
 		set_exception_handler(array('\\smCore\\handlers\\DefaultExceptionHandler', 'exceptionHandler'));
 
+		// Starting up...
+		// ob_start();
 		// Initialize database connection
 		Storage::initConnection(Settings::$database);
 
@@ -125,29 +128,49 @@ class Application
 
 		// Load language...
 		Language::getDefaultLanguage();
-		$user = User::getCurrentUser();
+		$user = User::currentUser();
 		if ($user->get('language') !== 'english_us')
 			Language::getUserLanguage($user->get('language'));
 
-		// We direct to the appropriate handler for APIs and others, here.
-		// (i.e. appropriate output format, whatnot, for RSS/etc).
-		// API::run();
-		// die()
-
-		// Start up the events subsystem... Ugly, and necessary at all?
-		// EventDispatcher::getInstance();
-
 		// Setup view environment...
-		ViewManager::getInstance()->setupTheme();
+		View::initialize();
 
-		// Initialize menu
-		Menu::setupMenu($this->_context, Router::getRoutes(), true);
+		// Initialize menu...
+		// Lets accept this for now.
+		Menu::setupMenu($this->_context, Router::getInstance()->getRoutes(), true);
+		Language::getLanguage()->load(\Settings::APP_LANGUAGE_DIR . '/menu.yaml');
 
 		// Find the route and dispatch
 		Router::dispatch();
 
 		// this is a beauty.
-		ViewManager::theme()->output();
+		ViewLoader::get_engine()->display();
+	}
+
+	/**
+	 * Loads information about what browser the user is viewing with and places it in $context
+	 *
+	 */
+	public function detectBrowser()
+	{
+		// Load the current user's browser of choice
+		$detector = new BrowserDetector();
+		$detector->detectBrowser();
+	}
+
+	/**
+	 * Are we using this browser?
+	 *
+	 * Wrapper function for detectBrowser
+	 * @param $browser: browser we are checking for.
+	 */
+	public function isBrowser($browser)
+	{
+		// Don't know any browser!
+		if (empty(self::getInstance()->_context['browser']))
+			$this->detectBrowser();
+
+		return !empty(self::getInstance()->_context['browser'][$browser]) || !empty(self::getInstance()->_context['browser']['is_' . $browser]) ? true : false;
 	}
 
 	/**
@@ -155,22 +178,33 @@ class Application
 	 *
 	 * @param $toAdd
 	 */
-	function addToContext($toAdd)
+	public static function addToContext($toAdd)
 	{
 		// @todo check toAdd and merge it as appropriate.
-		$this->_context += $toAdd;
+		self::getInstance()->_context += $toAdd;
 	}
 
 	/**
-	 * Add to context array.
-     * Convenience method for adding a (key, value) pair to the $context array
-     * to be sent to the template.
-     * This should probably move from Application class.
+	 * Stuff. Add to context array.
+	 * Convenience method for adding a (key, value) pair to the $context array
+	 * to be sent to the template.
+	 * This should probably move from Application class.
 	 *
-	 * @param $key
-	 * @param $value
+	 * @param string $key
+	 * @param string $value
 	 */
 	public static function addValueToContext($key, $value)
+	{
+		self::getInstance()->_context[$key] = $value;
+	}
+
+	/**
+	 * Stuff. Redundant method for the moment, to reset values in contextual array.
+	 *
+	 * @param string $key
+	 * @param string $value
+	 */
+	public static function setValueToContext($key, $value)
 	{
 		self::getInstance()->_context[$key] = $value;
 	}
@@ -180,7 +214,7 @@ class Application
 	 *
 	 * @return array
 	 */
-	public function getContext()
+	public function context()
 	{
 		return $this->_context;
 	}
@@ -195,6 +229,13 @@ class Application
 		return self::$_start_time;
 	}
 
+	/**
+	 * Use a registry for some needed values
+	 *
+	 * @static
+	 * @param $key
+	 * @param $value
+	 */
 	static function set($key, $value)
 	{
 		if ($value === null)
@@ -203,6 +244,13 @@ class Application
 			self::$_registry[$key] = $value;
 	}
 
+	/**
+	 * Retrieve from registry
+	 *
+	 * @static
+	 * @param $key
+	 * @return mixed
+	 */
 	static function get($key)
 	{
 		if (array_key_exists($key, self::$_registry))
@@ -211,7 +259,8 @@ class Application
 		}
 		else
 		{
-			die('bad key throw exception!');
+			return '';
 		}
 	}
+
 }
