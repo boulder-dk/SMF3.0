@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is the smCore project.
  *
- * Portions created by the Initial Developer are Copyright (C) 2011
+ * Portions created by the Initial Developer are Copyright (C) 2012
  * the Initial Developer. All Rights Reserved.
  *
  * @version 1.0 alpha
@@ -23,6 +23,8 @@
  */
 
 namespace smCore\handlers;
+
+use smCore\Config;
 
 /**
  * DefaultErrorHandler of the platform.
@@ -41,13 +43,28 @@ class DefaultErrorHandler
 	 */
 	public static function errorHandler($errno, $errstr, $errfile, $errline)
 	{
-		if (!(error_reporting() & $errno))
+		if ((error_reporting() == 0 || (defined('E_STRICT') && $errno == E_STRICT)))
 		{
-			// This error code is not included in error_reporting
-			// return;
+			// Remember this is not included in error_reporting
+			return;
+		}
+		
+		// log the error.
+
+		// in debug mode, show it off!
+		if (isset($db_show_debug) && $db_show_debug === true)
+		{
+			// Debug silly message.
+			
+			// Log extra info
 		}
 
 		echo ('Error: ' . $errstr . ' in ' . $errfile . ' on line ' . $errline . '<br />' . PHP_EOL);
 		echo debug_backtrace();
+		
+		// Forgive some more?
+		
+		// Things die.  @todo uncomment.
+		// die();
 	}
 }

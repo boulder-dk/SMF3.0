@@ -4,7 +4,7 @@
  * smCore platform
  *
  * Based on SMF authentication
- * @copyright 2011 Simple Machines and contributors
+ * @copyright 2012 Simple Machines and contributors
  *
  * @package smCore
  * @author Simple Machines contributors
@@ -123,8 +123,8 @@ class Cookie
 		else
 			$parsed_url = parse_url(Settings::APP_URL);
 
-		$localCookies = Configuration::getConf()->getLocalCookies();
-		$globalCookies = Configuration::getConf()->getGlobalCookies();
+		$localCookies = Config::getConf()->getLocalCookies();
+		$globalCookies = Config::getConf()->getGlobalCookies();
 
 		// Is local cookies off?
 		if (empty($localCookies))
@@ -194,13 +194,13 @@ class Cookie
 		$this->_expire = time() + $length;
 		if (!empty($id_user))
 		{
-			$localCookies = Configuration::getConf()->getLocalCookies();
-			$globalCookies = Configuration::getConf()->getGlobalCookies();
+			$localCookies = Config::getConf()->getLocalCookies();
+			$globalCookies = Config::getConf()->getGlobalCookies();
 			$cookieState = (empty($localCookies) ? 0 : 1) | (empty($globalCookies) ? 0 : 2);
 			$this->_data = array($id_user, $password, time() + $length, $cookieState);
 		}
-		$this->_secure = Configuration::getConf()->getSecureCookies();
-		$this->_httponly = Configuration::getConf()->getHttpOnly();
+		$this->_secure = Config::getConf()->getSecureCookies();
+		$this->_httponly = Config::getConf()->getHttpOnly();
 		$this->initFromUrl($fakeUrl);
 	}
 
@@ -212,7 +212,7 @@ class Cookie
 	 */
 	public static function validateFromSession()
 	{
-		$cookieName = Configuration::getConf()->getCookieName();
+		$cookieName = Config::getConf()->getCookieName();
 		self::validate(unserialize($_SESSION['login_' . $cookieName]));
 	}
 
@@ -230,6 +230,10 @@ class Cookie
 		{
 			list ($id_member, $password, $time, $state) = @unserialize($string);
 			$id_member = !empty($id_member) && strlen($password) > 0 ? (int) $id_member : 0;
+			return array(
+				'id_member' => $id_member,
+				'password' => $password
+			);
 		}
 		else
 			$id_member = 0;

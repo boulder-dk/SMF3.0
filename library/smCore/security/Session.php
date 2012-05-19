@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is the smCore project.
  *
- * Portions created by the Initial Developer are Copyright (C) 2011
+ * Portions created by the Initial Developer are Copyright (C) 2012
  * the Initial Developer. All Rights Reserved.
  *
  * @version 1.0 alpha
@@ -39,6 +39,7 @@ class Session
 	private static function overrideIni()
 	{
 		// @todo pay attention to safe mode set.
+        // and session already started
 		ini_set('session.use_cookies', true);
 		ini_set('session.use_only_cookies', false);
 		ini_set('url_rewriter.tags', '');
@@ -139,7 +140,7 @@ class Session
 	static function setLoginCookie($cookie_length, $userId, $password = '')
 	{
 		// We don't need the old cookie, if any, so empty it out.
-		$cookieName = Configuration::getConf()->getCookieName();
+		$cookieName = Config::getConf()->getCookieName();
 		if (Cookie::validateFromRequest())
 		{
 			// How odd, you're already here. No matter, out with you, and set you anew.
@@ -152,7 +153,7 @@ class Session
 
 		// Alias URLs. This is for SMF compatibility, although we likely need to review this.
 		// It concerns the "aliasUrls" defined as user setting, like SMF allows.
-		$aliasUrls = Configuration::getConf()->getAliasUrls();
+		$aliasUrls = Config::getConf()->getAliasUrls();
 		if (!empty($aliasUrls))
 		{
 			$aliases = explode(',', $aliasUrls);
@@ -186,7 +187,10 @@ class Session
 	 */
 	public static function isLoggedIn()
 	{
-		return Cookie::validateFromSession();
+		$userInfo = Cookie::validateFromRequest();
+		if (empty($userInfo))
+			$userInfo = Cookie::validateFromSession();
+		return $userInfo;
 	}
 
 	/**
