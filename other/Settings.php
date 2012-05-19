@@ -26,6 +26,7 @@ class Settings
 	const APP_THEME_DIR = '/smcore/themes';
 	const APP_LANGUAGE_DIR = '/smcore/languages';
 	const APP_CACHE_DIR = '/smcore/cache';
+	const APP_CACHE_TYPE = 'file';
 
 	const APP_URL = 'http://myserver.com';
 

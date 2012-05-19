@@ -21,10 +21,12 @@
  * Contributor(s):
 */
 
+namespace smCore\cache;
+
 interface CacheProvider
 {
-	public abstract function get($key, $ttl);
-	public abstract function put($key, $data, $ttl);
-	public abstract function invalidate();
-	public abstract function invalidateKey($key);
+	function get($key, $ttl = 120);
+	function put($key, $data, $ttl = 120);
+	function invalidate();
+	function invalidateKey($key);
 }
