@@ -31,6 +31,17 @@ use smCore\Application, smCore\model\Module, smCore\Request, smCore\handlers\Act
 class SubscriptionController extends ActionController
 {
 	/**
+	 * Instantiate this controller, with a reference to the parent module, to provide its services.
+	 *
+	 * @param $action
+	 * @param $parentModule
+	 */
+	public function __construct($action, $parentModule)
+	{
+		parent::__construct($action, $parentModule);
+	}
+	
+	/**
 	 * Show the payment gateway details.
 	 */
 	public function displayAction()
