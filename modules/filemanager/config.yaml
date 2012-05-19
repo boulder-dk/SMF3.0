@@ -1,0 +1,16 @@
+name: File Manager Module
+identifier: org.smcore.filemanager
+version: 0.1
+author:
+    name: Norv
+    email: norv@simplemachines.org
+    website: http://smcore.org
+template_ns: filemanager
+language_ns: filemanager
+namespace: \smCore\modules\filemanager
+routes:
+    download:
+        title: download
+        controller: smCore\modules\filemanager\FileManagerController
+        order: 9
+        visible: true

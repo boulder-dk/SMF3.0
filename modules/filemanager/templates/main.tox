@@ -1,0 +1,6 @@
+<tpl:container>
+	<tpl:template name="filemanager:main">
+		Main
+	</tpl:template>
+
+</tpl:container>
