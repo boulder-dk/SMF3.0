@@ -1,14 +1,7 @@
 <?php
 
 /**
- * smCore platform
- *
- * @package smCore
- * @author Simple Machines http://www.simplemachines.org
- * @copyright 2012 Simple Machines and contributors
- * @license http://www.simplemachines.org/about/smf/license.php BSD
- *
- * @version 3.0 Alpha 1
+ * Test class
  */
 
 namespace smCore;
