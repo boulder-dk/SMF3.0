@@ -5,7 +5,6 @@
  */
 
 namespace smCore;
-
 use smCore\Application;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase {
