@@ -40,7 +40,7 @@ class FileCache implements CacheProvider
 		// Do this old style, improve later.
 		if (file_exists(Settings::APP_CACHE_DIR . '/data_' . $key . '.php') && filesize(Settings::APP_CACHE_DIR . '/data_' . $key . '.php') > 10)
 		{
-			require_once(Settings::APP_CACHE_DIR . '/data_' . $key . '.php');
+			@include(Settings::APP_CACHE_DIR . '/data_' . $key . '.php');
 			if (!empty($expired) && isset($value))
 			{
 				@unlink(Settings::APP_CACHE_DIR . '/data_' . $key . '.php');
