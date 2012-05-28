@@ -30,7 +30,7 @@ class Settings
 	const APP_URL = 'http://myserver.com';
 
 	const COOKIE_PATH = '/';
-	const COOKIE_NAME = 'funz'; // wha'?
+	const COOKIE_NAME = 'smcore';
 	const COOKIE_DOMAIN = '.myserver.com';
 
 	const APP_TIMEZONE = 'America/Los_Angeles';
