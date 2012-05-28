@@ -29,11 +29,16 @@ namespace smCore\cache;
  */
 class ApcCache implements CacheProvider
 {
+	public function __construct($options)
+	{
+		//
+	}
+
 	/**
 	 * Retrieve a cached entry.
 	 * @see smCore\cache.CacheProvider::get()
 	 */
-	public function get($key, $ttl = 120)
+	public function get($key)
 	{
 		// Simply use what we have here, it's good stuff.
 		if (function_exists('apc_fetch'))
@@ -67,7 +72,7 @@ class ApcCache implements CacheProvider
 	 * Cache an entry.
 	 * @see smCore\cache.CacheProvider::put()
 	 */
-	public function put($key, $data, $ttl = 120)
+	public function set($key, $data, $ttl = 120)
 	{
 		// we're going to regret these function_exists, I can tell :P
 		if (function_exists('apc_store'))

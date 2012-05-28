@@ -34,7 +34,7 @@ class NullCache implements CacheProvider
 	 *
 	 * @see smCore\cache.CacheProvider::get()
 	 */
-	public function get($key, $ttl = 120)
+	public function get($key)
 	{
 		// Nothing to see here...
 		return false;
@@ -65,7 +65,7 @@ class NullCache implements CacheProvider
 	 *
 	 * @see smCore\cache.CacheProvider::put()
 	 */
-	public function put($key, $data, $ttl = 120)
+	public function set($key, $data, $ttl = 120)
 	{
 		// Sorry, we don't put data anywhere.
 	}

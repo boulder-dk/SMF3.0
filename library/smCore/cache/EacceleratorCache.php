@@ -29,11 +29,16 @@ namespace smCore\cache;
  */
 class ApcCache implements CacheProvider
 {
+	public function __construct($settings)
+	{
+		// $settings for anything needed on initialization
+	}
+
 	/**
 	 * Retrieve a cached entry.
 	 * @see smCore\cache.CacheProvider::get()
 	 */
-	public function get($key, $ttl = 120)
+	public function get($key)
 	{
 		// try eaccelerator
 		if (function_exists('eaccelerator_get'))
@@ -67,7 +72,7 @@ class ApcCache implements CacheProvider
 	 * Cache an entry.
 	 * @see smCore\cache.CacheProvider::put()
 	 */
-	public function put($key, $data, $ttl = 120)
+	public function set($key, $data, $ttl = 120)
 	{
 		if (function_exists('eaccelerator_put'))
 		{

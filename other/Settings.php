@@ -19,19 +19,20 @@
  * the Initial Developer. All Rights Reserved.
 */
 
+define('CHARSET', 'UTF-8');
+
 class Settings
 {
 	const APP_PATH = '/smcore';
+	const LIBRARY_PATH = '/smcore/library';
 	const APP_MODULE_DIR = '/smcore/modules';
 	const APP_THEME_DIR = '/smcore/themes';
 	const APP_LANGUAGE_DIR = '/smcore/languages';
-	const APP_CACHE_DIR = '/smcore/cache';
-	const APP_CACHE_TYPE = 'file';
 
 	const APP_URL = 'http://myserver.com';
 
 	const COOKIE_PATH = '/';
-	const COOKIE_NAME = 'funz'; // wha'?
+	const COOKIE_NAME = 'smcore';
 	const COOKIE_DOMAIN = '.myserver.com';
 
 	const APP_TIMEZONE = 'America/Los_Angeles';
@@ -46,5 +47,12 @@ class Settings
 		'dbname' => '',
 		'profiler' => true,
 		'db_show_debug' => true,
+	);
+
+	public static $cacheOptions = array(
+		'cachedir' => '/smcore/cache',
+		'type' => 'file',
+		// other options, passed to the Cache constructor
+		// specific to the underlying system
 	);
 }

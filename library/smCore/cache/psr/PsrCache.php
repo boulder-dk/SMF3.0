@@ -21,26 +21,26 @@
  * Contributor(s):
 */
 
-namespace smCore\cache;
+namespace smCore\cache\psr;
 use \Settings;
 
 /**
  * Cache sub-system.
+ * This class works with an implementation of PSR proposal for Cache API
+ * https://github.com/tedivm/fig-standards
  */
-class Cache
+class PsrCache
 {
 	/**
 	 * The cache system in use.
 	 *
-	 * @var CacheProvider
+	 * @var Pool
 	 */
 	private static $_instance = null;
 
 	/**
 	 * Retrieve the actual system cache.
 	 * Still keep things very simple.
-	 *
-	 * @param string $type
 	 */
 	public static function instance()
 	{
@@ -48,21 +48,22 @@ class Cache
 			return self::$_instance;
 
 		$type = ucfirst(Settings::$cacheOptions['type']);
-		if (empty($type) || !class_exists('smCore\cache\\' . $type . 'Cache', true))
+		if (empty($type) || !class_exists('smCore\cache\psr\\' . $type . 'CachePool', true))
 		{
 			// no cache for us.
-			self::$_instance = new NullCache();
+			self::$_instance = new NullCachePool();
 		}
 		else
 		{
 			// know what you want? Good.
 			try
 			{
-				$type = 'smCore\cache\\' . $type . 'Cache';
+				$type = 'smCore\cache\psr\\' . $type . 'CachePool';
 				self::$_instance = new $type(Settings::$cacheOptions);
 			}
 			catch (Exception $e)
 			{
+				// check this
 				Debug::write($e);
 			}
 		}
@@ -70,30 +71,4 @@ class Cache
 			return self::$_instance;
 		// fallback
 	}
-
-	/*
-	* Do something unorthodox here.
- 	* Just drop some static methods delegate to the actual system cache operations.
- 	* (to be refactored)
- 	*/
-	public static function get($key, $ttl = 120)
-	{
-		return self::instance()->get($key, $ttl);
-	}
-
-	public static function invalidate()
-	{
-		self::instance()->invalidate();
-	}
-
-	public static function invalidateKey($key)
-	{
-		self::instance()->invalidateKey($key);
-	}
-
-	public static function set($key, $data, $ttl = 120)
-	{
-		self::instance()->set($key, $data, $ttl);
-	}
-	private function __construct(){}
 }

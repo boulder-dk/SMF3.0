@@ -25,8 +25,8 @@ namespace smCore\cache;
 
 interface CacheProvider
 {
-	function get($key, $ttl = 120);
-	function put($key, $data, $ttl = 120);
+	function get($key);
+	function set($key, $data, $ttl = 120);
 	function invalidate();
 	function invalidateKey($key);
 }
