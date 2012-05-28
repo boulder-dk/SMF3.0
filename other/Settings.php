@@ -22,10 +22,10 @@
 class Settings
 {
 	const APP_PATH = '/smcore';
+	const LIBRARY_PATH = '/smcore/library';
 	const APP_MODULE_DIR = '/smcore/modules';
 	const APP_THEME_DIR = '/smcore/themes';
 	const APP_LANGUAGE_DIR = '/smcore/languages';
-	const APP_CACHE_DIR = '/smcore/cache';
 
 	const APP_URL = 'http://myserver.com';
 
@@ -45,5 +45,11 @@ class Settings
 		'dbname' => '',
 		'profiler' => true,
 		'db_show_debug' => true,
+	);
+	public static $cacheOptions = array(
+		'cachedir' => '/smcore/cache',
+		'type' => 'file',
+		// other options, passed to the Cache constructor
+		// specific to the underlying system
 	);
 }
