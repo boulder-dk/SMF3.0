@@ -24,7 +24,8 @@
  */
 
 use smCore\Application, smCore\Request, smCore\storage\Storage,
-	smCore\cache\Pool, smCore\cache\CacheItem;
+	smCore\cache\psr\CachePool, smCore\cache\psr\CacheItem,
+	smCore\cache\Cache, smCore\cache\psr\PsrCache;
 
 class Compat
 {}
@@ -160,19 +161,18 @@ function database()
  * Compatibility function.
  * Retrieve data from cache, if it exists.
  * Delegates to the Cache subsystem.
- * The purpose of this code is to test the use the standard Cache
+ * The purpose of this code is to try to use the standard Cache
  * interfaces, doing much more work than needed right now.
- * Up for benchmark, testing and refactoring.
  *
  * @param string $key
  */
-function cache_get_data($key)
+function cache_get_data_psr($key)
 {
-	$item = Pool::instance()->getCache($key);
+	$item = PsrCache::instance()->getCache($key);
 	if ($item->isMiss())
 		return false;
 	else
-		return $item->value();
+		return $item->get();
 }
 
 /**
@@ -183,9 +183,35 @@ function cache_get_data($key)
  * @param string $key
  * @param int|DateInterval|null $ttl
  */
+function cache_put_data_psr($key, $data = null, $ttl = null)
+{
+	$item = PsrCache::instance()->getCache($key);
+	if ($item->isMiss() || $item->get() != $data)
+		$item->set($data);
+}
+
+/**
+ * Compatibility function.
+ * Retrieve data from cache, if it exists.
+ * Delegates to the Cache subsystem.
+ * The purpose of this code is to use the Cache sub-system.
+ *
+ * @param string $key
+ */
+function cache_get_data($key)
+{
+	return Cache::get($key);
+}
+
+/**
+ * Compatibility function.
+ * Cache data through the Cache subsystem.
+ * Delegates to the Cache subsystem.
+ *
+ * @param string $key
+ * @param int|null $ttl
+ */
 function cache_put_data($key, $data = null, $ttl = null)
 {
-	$item = Pool::instance()->getCache($key);
-	if ($item->isMiss())
-		$item->set($data, $ttl);
+	Cache::set($key, $data, $ttl);
 }
