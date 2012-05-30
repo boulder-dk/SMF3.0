@@ -1,0 +1,55 @@
+eAccelerator:
+  eaccelerator_put($key, $data, $ttl)
+  eaccelerator_get($key)
+  eaccelerator_rm($key)
+  eaccelerator_clear()
+
+APC:
+  apc_store($key, $data, $ttl)
+  apc_fetch($key)
+  apc_delete($key)
+  apc_clear_cache('user');
+
+Memcache:
+  $memcache->set($key, $data, $compressed, $ttl)
+  $memcache->get($key)
+  $memcache->delete($key)
+  $memcache->flush()
+
+Memcached:
+  $memcached->set($key, $data, $ttl)
+  $memcached->get($key)
+  $memcached->delete($key)
+  $memcached->flush()
+
+Redis:
+  $redis->set($key, $data)
+  $redis->expire($key, $ttl)
+  $redis->get($key)
+  $redis->delete($key)
+  $redis->flushDB($key)
+
+WinCache:
+  wincache_ucache_set($key, $data, $ttl)
+  wincache_ucache_get($key, $success)
+  wincache_ucache_delete($key)
+  wincache_ucache_clear()
+
+XCache:
+  xcache_set($key, $data, $ttl)
+  xcache_get($key)
+  xcache_unset($key)
+  xcache_clear_cache(XC_TYPE_VAR, 0)
+
+Zend_Disk:
+  zend_disk_cache_store($key, $data, $ttl)
+  zend_disk_cache_fetch($key)
+  zend_disk_cache_delete($key)
+  zend_disk_cache_clear()
+
+Zend_SHM:
+  zend_shm_cache_store($key, $data, $ttl)
+  zend_shm_cache_fetch($key)
+  zend_shm_cache_delete($key)
+  zend_shm_cache_clear()
+

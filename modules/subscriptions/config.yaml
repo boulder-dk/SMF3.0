@@ -1,0 +1,9 @@
+name: Subscriptions Module
+version: 1.0
+author:
+    name: Simple Machines contributors
+    email: norv@simplemachines.org
+    website: http://www.simplemachines.org
+template_ns: subscriptions
+language_ns: subscriptions
+namespace: \smCore\modules\subscriptions

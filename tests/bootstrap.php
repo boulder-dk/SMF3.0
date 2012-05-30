@@ -26,6 +26,7 @@
 require_once dirname(dirname(__FILE__)) . '/Settings.php';
 $libraryPath = Settings::LIBRARY_PATH;
 require_once $libraryPath . '/smCore/DefaultAutoloader.php';
+
 $loader = new smCore\DefaultAutoloader();
 $loader->set_library_path($libraryPath . '/');
 $loader->add_library('sfYaml', Settings::APP_PATH . '/library/sfYaml/');
@@ -37,5 +38,4 @@ $loader->register();
 
 // Compat file, which will be removed!
 require_once(dirname(dirname(__FILE__)) . '/Compat.php');
-
 

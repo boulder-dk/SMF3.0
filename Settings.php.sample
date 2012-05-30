@@ -19,6 +19,8 @@
  * the Initial Developer. All Rights Reserved.
 */
 
+define('CHARSET', 'UTF-8');
+
 class Settings
 {
 	const APP_PATH = '/smcore';
@@ -46,6 +48,7 @@ class Settings
 		'profiler' => true,
 		'db_show_debug' => true,
 	);
+
 	public static $cacheOptions = array(
 		'cachedir' => '/smcore/cache',
 		'type' => 'file',
