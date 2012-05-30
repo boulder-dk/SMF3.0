@@ -71,29 +71,5 @@ class Cache
 		// fallback
 	}
 
-	/*
-	* Do something unorthodox here.
- 	* Just drop some static methods delegate to the actual system cache operations.
- 	* (to be refactored)
- 	*/
-	public static function get($key, $ttl = 120)
-	{
-		return self::instance()->get($key, $ttl);
-	}
-
-	public static function invalidate()
-	{
-		self::instance()->invalidate();
-	}
-
-	public static function invalidateKey($key)
-	{
-		self::instance()->invalidateKey($key);
-	}
-
-	public static function set($key, $data, $ttl = 120)
-	{
-		self::instance()->set($key, $data, $ttl);
-	}
 	private function __construct(){}
 }

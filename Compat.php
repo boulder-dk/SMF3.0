@@ -200,7 +200,7 @@ function cache_put_data_psr($key, $data = null, $ttl = null)
  */
 function cache_get_data($key)
 {
-	return Cache::get($key);
+	return cache()->get($key);
 }
 
 /**
@@ -213,5 +213,14 @@ function cache_get_data($key)
  */
 function cache_put_data($key, $data = null, $ttl = null)
 {
-	Cache::set($key, $data, $ttl);
+	cache()->set($key, $data, $ttl);
+}
+
+/**
+ * Compatibility function.
+ * Can be used to get hold easily of a Cache instance.
+ */
+function cache()
+{
+	return Cache::instance();
 }

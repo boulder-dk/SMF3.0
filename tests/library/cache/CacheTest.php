@@ -46,11 +46,11 @@ class CacheTest extends \PHPUnit_Framework_TestCase {
 	public function testGet() {
 		$key = 'test';
 		$data = 'blah blah test';
-		Cache::set($key, $data, 0);
+		Cache::instance()->set($key, $data, 0);
 		// should expire meanwhile
 		sleep(1);
 
-		$getit = Cache::get($key);
+		$getit = Cache::instance()->get($key);
 		$this->assertNotEquals($data, $getit);
 		$this->assertEquals($getit, '');
 	}
@@ -61,10 +61,10 @@ class CacheTest extends \PHPUnit_Framework_TestCase {
 	public function testInvalidate() {
 		$key = 'test';
 		$data = 'blah blah test';
-		Cache::set($key, $data, 120);
+		Cache::instance()->set($key, $data, 120);
 		// invalidate all cache
-		Cache::invalidate();
-		$getit = Cache::get($key);
+		Cache::instance()->invalidate();
+		$getit = Cache::instance()->get($key);
 
 		$this->assertNotEquals($data, $getit);
 		$this->assertEquals($getit, '');
@@ -76,25 +76,25 @@ class CacheTest extends \PHPUnit_Framework_TestCase {
 	public function testInvalidateKey() {
 		$key = 'test';
 		$data = 'blah blah test';
-		Cache::set($key, $data, 120);
+		Cache::instance()->set($key, $data, 120);
 		// invalidate key
-		Cache::invalidate($key);
-		$getit = Cache::get($key);
+		Cache::instance()->invalidate($key);
+		$getit = Cache::instance()->get($key);
 
 		$this->assertNotEquals($data, $getit);
 		$this->assertEquals($getit, '');
 	}
 
 	/**
-	 * testPut().
+	 * testSet().
 	 */
-	public function testPut() {
+	public function testSet() {
 		$key = 'test';
 		$data = 'blah blah test';
 		$t = time();
 
-		Cache::set($key, $data, 3);
-		$getit = Cache::get($key);
+		Cache::instance()->set($key, $data, 3);
+		$getit = Cache::instance()->get($key);
 		$this->assertEquals($getit, $data);
 
 	}
