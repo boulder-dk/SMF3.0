@@ -22,8 +22,8 @@
  *
  */
 
-namespace database;
-use smCore\storage;
+namespace smCore\database;
+use smCore\storage\Storage;
 
 /**
  * Simple database logger class.

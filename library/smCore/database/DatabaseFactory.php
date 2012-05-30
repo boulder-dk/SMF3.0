@@ -22,7 +22,7 @@
  *
  */
 
-namespace database;
+namespace smCore\database;
 
 /**
  * This class' job is to retrieve the adapter for the specific database system.
@@ -38,7 +38,7 @@ class DatabaseFactory
 	 * @param string $type - default options: 'default', 'extra', 'packages'.
 	 * @internal param string $db_type - default options: 'mysql', 'postgresql', 'sqlite'
 	 * (more can be aded)
-	 * @return \database\DatabaseAdapter
+	 * @return \smCore\database\DatabaseAdapter
 	 */
 	public static function getAdapter($adapter, $type = 'default')
 	{
@@ -48,7 +48,7 @@ class DatabaseFactory
 
 		if (empty(self::$_adapter))
 		{
-			$adapterName = 'database\\' . ucfirst($type) . ucfirst($adapter) . 'Adapter';
+			$adapterName = 'smCore\\database\\' . ucfirst($type) . ucfirst($adapter) . 'Adapter';
 			// if (file_exists($adapterName . '.php'))
 			//	require_once($adapterName . '.php');
 

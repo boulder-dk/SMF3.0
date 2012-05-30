@@ -22,9 +22,9 @@
  *
  */
 
-namespace database;
+namespace smCore\database;
 
-use smCore\Exception, smCore\Configuration, Settings, smCore\Language;
+use smCore\Exception, smCore\Config, Settings, smCore\Language;
 
 /**
  * The main MySQL database adapter.
@@ -121,12 +121,6 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 
 		if ($matches[1] === 'db_prefix')
 			return $this->_db_prefix;
-
-		// if ($matches[1] === 'query_see_board')
-		//	return $user_info['query_see_board'];
-
-		// if ($matches[1] === 'query_wanna_see_board')
-		//	return $user_info['query_wanna_see_board'];
 
 		if (!isset($matches[2]))
 			$this->error_backtrace('Invalid value inserted or no type specified.', '', E_USER_ERROR, __FILE__, __LINE__);
@@ -229,7 +223,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		if (strpos($db_string, '{') !== false)
 		{
 			// This is needed by the callback function.
-			$db_callback = array($db_values, $connection === null ? $this->getConnection() : $connection);
+			$db_callback = array($db_values, $connection === null ? $this->connection() : $connection);
 
 			// Do the quoting and escaping
 			$db_string = preg_replace_callback('~{([a-z_]+)(?::([a-zA-Z0-9_-]+))?}~', array($this, 'replacement_callback'), $db_string);
@@ -270,12 +264,13 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		);
 
 		// Decide which connection to use.
-		$connection = $connection === null ? $this->getConnection() : $connection;
+		$connection = $connection === null ? $this->connection() : $connection;
 
 		// One more query...
 		$this->_logger->addQueryCount();
 
-		if (empty(Configuration::getConf()->_disableQueryCheck) && strpos($db_string, '\'') !== false && empty($db_values['security_override']))
+		$disableQueryCheck = Config::get('disableQueryCheck');
+		if (empty($disableQueryCheck) && strpos($db_string, '\'') !== false && empty($db_values['security_override']))
 			$this->error_backtrace('Hacking attempt...', 'Illegal character (\') used in query...', true, __FILE__, __LINE__);
 
 		// Use "ORDER BY null" to prevent Mysql doing filesorts for Group By clauses without an Order By
@@ -315,7 +310,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		}
 
 		// First, we clean strings out of the query, reduce whitespace, lowercase, and trim - so we can check it over.
-		if (empty(Configuration::getConf()->_disableQueryCheck))
+		if (empty($disableQueryCheck))
 		{
 			$clean = '';
 			$old_pos = 0;
@@ -389,7 +384,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	 */
 	function affected_rows($connection = null)
 	{
-		return mysql_affected_rows($connection == null ? $this->getConnection() : $connection);
+		return mysql_affected_rows($connection == null ? $this->connection() : $connection);
 	}
 
 	/**
@@ -405,7 +400,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		$table = str_replace('{db_prefix}', $this->_db_prefix, $table);
 
 		// MySQL doesn't need the table or field information.
-		return mysql_insert_id($connection === null ? $this->getConnection() : $connection);
+		return mysql_insert_id($connection === null ? $this->connection() : $connection);
 	}
 
 	/**
@@ -418,7 +413,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	function transaction($type = 'commit', $connection = null)
 	{
 		// Decide which connection to use
-		$connection = $connection == null ? $this->getConnection() : $connection;
+		$connection = $connection == null ? $this->connection() : $connection;
 
 		if ($type == 'begin')
 			return @mysql_query('BEGIN', $connection);
@@ -443,7 +438,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		list ($file, $line) = $this->error_backtrace('', '', 'return', __FILE__, __LINE__);
 
 		// Decide which connection to use
-		$connection = $connection === null ? $this->getConnection() : $connection;
+		$connection = $connection === null ? $this->connection() : $connection;
 
 		// This is the error message...
 		$query_error = mysql_error($connection);
@@ -460,7 +455,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		//    2013: Lost connection to server during query.
 
 		// Log the error.
-        $enableErrorQueryLogging = Configuration::getConf()->_enableErrorQueryLogging;
+        $enableErrorQueryLogging = Config::get('enableErrorQueryLogging');
 		if ($query_errno != 1213 && $query_errno != 1205 && !empty($this->_logger))
 			$this->_logger->logError(Language::getLanguage()->get('database_error') . ': ' . $query_error . (!empty($enableErrorQueryLogging) ? "\n\n$db_string" : ''), 'database', $file, $line);
 
@@ -496,7 +491,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	 */
 	function insert($method = 'replace', $table, $columns, $data, $keys, $disable_trans = false, $connection = null)
 	{
-		$connection = $connection === null ? $this->getConnection() : $connection;
+		$connection = $connection === null ? $this->connection() : $connection;
 
 		// With nothing to insert, simply return.
 		if (empty($data))
@@ -624,7 +619,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	 *
 	 * @param $type
 	 */
-	function getConnection($type = 'write')
+	function connection($type = 'write')
 	{
 		if (empty($type))
 			$type = 'write';
@@ -792,7 +787,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	 * @param $connection
 	 * @return string
 	 */
-	function getDatabaseError($connection)
+	function get_database_error($connection)
 	{
 		return @mysql_error($connection);
 	}

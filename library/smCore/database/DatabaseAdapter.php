@@ -22,7 +22,7 @@
  *
  */
 
-namespace database;
+namespace smCore\database;
 
 /**
  * Abstract class of database adapters. Its methods are implemented by particular system-specific adapters
@@ -58,7 +58,7 @@ abstract class DatabaseAdapter
 	 * @abstract
 	 * @param $type
 	 */
-	abstract function getConnection($type = 'write');
+	abstract function connection($type = 'write');
 
 	/**
 	 * Fix up the prefix so it doesn't require the database to be selected.
@@ -271,7 +271,7 @@ abstract class DatabaseAdapter
 	 * @param $connection
 	 * @return string
 	 */
-	abstract function getDatabaseError($connection);
+	abstract function get_database_error($connection);
 
 	/**
 	 * @abstract
