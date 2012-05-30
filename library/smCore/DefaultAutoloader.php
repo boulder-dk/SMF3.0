@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is the smCore project.
  *
- * Portions created by the Initial Developer are Copyright (C) 2011
+ * Portions created by the Initial Developer are Copyright (C) 2012
  * the Initial Developer. All Rights Reserved.
  *
  * @version 1.0 alpha
@@ -23,96 +23,172 @@
  */
 
 namespace smCore;
-use Settings;
 
 /**
  * Default autoloader.
- * Registers paths from smCore and modules, to load the files.
+ * Registers paths from smCore, modules, and additional libraries, to load the files.
+ * This autoloader is intended as PSR-0 compliant.
+ * Note that this autoloader will NOT require files, thereby allowing for further
+ * autoloaders that may be registered in the stack to attempt to load the classes.
+ * Source: https://wiki.php.net/rfc/splclassloader
  */
 class DefaultAutoloader
 {
+	const NS_SEPARATOR = '\\';
+	const PREFIX_SEPARATOR = '_';
+
+	private $_libraryPath = '';
+	private $_libraries = array();
+	private $_includePath = false;
+
 	/**
 	 * Once registered, this method is called by the PHP engine when loading a class.
 	 * It allows us to figure out where the class is, based on our setup of directories and files,
 	 * and have the respective file included.
+	 * This method is compatible with the PSR-0 specification.
+	 * The implementation allows for include path.
+	 * It will not require() class files.
+	 * This allows for eventual additional autoloaders to succeed.
 	 *
-	 * @static
 	 * @param $name
+	 * @throws Exception currently throws an exception when the class is not found.
 	 */
-	public static function autoload($name)
+	public function load($name)
 	{
-		$name = trim($name, '\\');
-		$filename = null;
-
-		// Namespaced, like smCore\Router
-		if (strpos($name, 'modules\\') === 0 || (strpos($name, 'smCore\\modules\\') === 0))
-		{
-			// If first 13 characters (0-15) are "smCore\modules\", cut them off
-			if (strpos($name, 'smCore\\modules\\') === 0)
-				$filename = Settings::APP_MODULE_DIR . '/' . str_replace('\\', '/', substr($name, 15)) . '.php';
-			else
-				$filename = Settings::APP_MODULE_DIR . '/' . str_replace('\\', '/', substr($name, 8)) . '.php';
-		}
-		elseif (strpos($name, 'smCore\\') === 0)
-		{
-			// if it's a storage class, then load it from its layer
-			str_replace('\\storage\\', '\\' . Settings::$database['layer'] . 'storage\\', $name);
-			// fully namespaced
-            if (strpos($name, 'smCore\\TemplateEngine\\') === 0)
-                $filename = Settings::APP_PATH . '/library/smTE/include/' . str_replace('\\', '/', substr($name, 22)) . '.php';
-            else
-			    $filename = Settings::APP_PATH . '/library/' . str_replace('\\', '/', $name) . '.php';
-		}
-		elseif (strpos($name, 'database\\') === 0)
-		{
-			$filename = Settings::APP_PATH . '/library/' . str_replace('\\', '/', $name) . '.php';
-		}
-		elseif (strpos($name, '\\') > 0)
-		{
-			$filename = __DIR__ . '/' . str_replace('\\', '/', $name) . '.php';
-		}
-		// Not namespaced
-		else
-		{
-			if (substr($name, 0, 6) === 'sfYaml')
-				$filename = Settings::APP_PATH . '/library/sfYaml/' . $name . '.php';
-			elseif (file_exists(Settings::APP_PATH . '/library/' . $name . '.php'))
-				$filename = Settings::APP_PATH . '/library/' . $name . '.php';
-			elseif (file_exists(Settings::APP_PATH . '/library/Inspekt/' . $name . '.php'))
-				$filename = Settings::APP_PATH . '/library/Inspekt/' . $name . '.php';
-			else
-				$filename = Settings::APP_PATH . '/library/' . str_replace('_', '/', $name) . '.php';
-		}
-
+		$filename = $this->get_filename($name);
 		if (file_exists($filename))
-			include_once($filename);
+		{
+			include_once $filename;
+			return true;
+		}
 		else
 		{
-			// @todo remove debugging help code! (yes, I'm lazy)
-			echo $filename;
-			echo ' ' . $name;
+			foreach ($this->_libraries as $library => $directories)
+			{
+				if (strpos($filename, $library) !== 0)
+					continue;
+				foreach ($directories as $directory)
+				{
+					$absolutePath = $directory . DIRECTORY_SEPARATOR . $filename;
+					if (file_exists($absolutePath))
+					{
+						include_once $absolutePath;
+						return true;
+					}
+				}
+			}
 		}
+
+		if ($this->has_include_path())
+		{
+			$filename = stream_resolve_include_path($filename);
+			if ($filename !== false)
+				include_once $filename;
+		}
+
+		// currently throw an exception
+		throw new Exception("Class $name not found in directories: " . var_dump($this->_directories));
 	}
 
 	/**
-	 * Register this autoloader.
+	 * Retrieve the (relative) filename corresponding to this className
 	 *
-	 * @static
+	 * @param string $className
+	 */
+	public function get_filename($className)
+	{
+		// Most classes will be namespaced
+		// Identify NS
+        $matches = array();
+        preg_match('/(?P<namespace>.+\\\)?(?P<class>[^\\\]+$)/', $className, $matches);
+
+        $class = (isset($matches['class'])) ? $matches['class'] : '';
+        $namespace = (isset($matches['namespace'])) ? $matches['namespace'] : '';
+
+        if (!empty($namespace))
+        	return $this->_libraryPath
+            	. str_replace(self::NS_SEPARATOR, '/', $namespace)
+            	. str_replace(self::PREFIX_SEPARATOR, '/', $class)
+            	. '.php';
+        else
+        	return $class . '.php';
+	}
+
+	/**
+	 * Register our autoloader.
+	 *
+	 * @param boolean $prepend Whether to prepend the autoloader in autoloaders list.
 	 * @return bool
 	 */
-	public static function register()
-    {
-		return spl_autoload_register(array(__CLASS__, 'autoload'));
-    }
+	public function register($prepend = false)
+	{
+		return spl_autoload_register(array($this, 'load'), true, $prepend);
+	}
 
 	/**
 	 * Unregister our autoloader.
 	 *
-	 * @static
 	 * @return bool
 	 */
-	public static function unregister()
+	public function unregister()
 	{
-		return spl_autoload_unregister(array(__CLASS__, 'autoload'));
+		return spl_autoload_unregister(array($this, 'load'));
+	}
+
+	/**
+	 * Add directory or directories to the autoloader path.
+	 * In particular to be used for additional libraries directories.
+	 * It may be used for modules.
+	 *
+	 * Allows for multiple directories to be mapped to a namespace.
+	 *
+	 * @param $library
+	 * @param $directories
+	 */
+	public function add_library($library, $directories)
+	{
+		// Add $directories to the path
+		$this->_libraries[$library] = array($directories);
+	}
+
+	/**
+	 * Main application path.
+	 *
+	 * @param string $libraryPath
+	 */
+	public function set_library_path($libraryPath)
+	{
+		$this->_libraryPath = $libraryPath;
+		$this->add_library('smCore', $this->_libraryPath);
+	}
+
+	/**
+	 * Retrieve the known main library path.
+	 * This is the default directory classnames/namespaces are resolved
+	 * against.
+	 */
+	public function get_library_path()
+	{
+		return $this->_libraryPath;
+	}
+
+	/**
+	 * Whether to add include path when searching for class files.
+	 *
+	 * @param boolean $includePathLookup
+	 */
+	public function add_include_path($includePath)
+	{
+		$this->includePath = $includePath;
+	}
+
+	/**
+	 * Whether PHP include path should be used.
+	 *
+	 * @return boolean
+	 */
+	public function has_include_path()
+	{
+		return $this->includePath;
 	}
 }

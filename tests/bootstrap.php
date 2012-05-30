@@ -26,10 +26,11 @@
 require_once dirname(dirname(__FILE__)) . '/Settings.php';
 $libraryPath = Settings::LIBRARY_PATH;
 require_once $libraryPath . '/smCore/DefaultAutoloader.php';
-\smCore\DefaultAutoloader::set_library_path($libraryPath . '/');
-\smCore\DefaultAutoloader::add_directory(Settings::APP_PATH . '/library/sfYaml/');
-\smCore\DefaultAutoloader::add_directory(Settings::APP_PATH . '/library/simpletest/');
-\smCore\DefaultAutoloader::register();
+$loader = new smCore\DefaultAutoloader();
+$loader->set_library_path($libraryPath . '/');
+$loader->add_library('sfYaml', Settings::APP_PATH . '/library/sfYaml/');
+$loader->add_library('simpletest', Settings::APP_PATH . '/library/simpletest/');
+$loader->register();
 
 // comment this out
 \smCore\storage\Storage::initConnection(Settings::$database);
