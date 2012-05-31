@@ -24,7 +24,7 @@
 
 namespace smCore\database;
 
-use smCore\Exception, smCore\Config, Settings, smCore\Language;
+use smCore\Exception;
 
 /**
  * The main MySQL database adapter.
@@ -38,6 +38,13 @@ use smCore\Exception, smCore\Config, Settings, smCore\Language;
 class DefaultMysqlAdapter extends DatabaseAdapter
 {
 	private $_connections = null;
+	private $_debugMode = false;
+
+	public function __construct()
+	{
+		// set attributes if necessary
+		parent::__construct();
+	}
 
 	/**
 	 * Initiate a database connection.
@@ -93,18 +100,6 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 			);
 
 		return $connection;
-	}
-
-	/**
-     * Fix prefix.
-     *
-	 * @param $db_prefix
-	 * @param $db_name
-	 */
-	function fix_prefix(&$db_prefix, $db_name)
-	{
-		$db_prefix = is_numeric(substr($db_prefix, 0, 1)) ? $db_name . '.' . $db_prefix : '`' . $db_name . '`.' . $db_prefix;
-		$this->_db_prefix = $db_prefix;
 	}
 
 	/**
@@ -269,10 +264,6 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		// One more query...
 		$this->_logger->addQueryCount();
 
-		$disableQueryCheck = Config::get('disableQueryCheck');
-		if (empty($disableQueryCheck) && strpos($db_string, '\'') !== false && empty($db_values['security_override']))
-			$this->error_backtrace('Hacking attempt...', 'Illegal character (\') used in query...', true, __FILE__, __LINE__);
-
 		// Use "ORDER BY null" to prevent Mysql doing filesorts for Group By clauses without an Order By
 		if (strpos($db_string, 'GROUP BY') !== false && strpos($db_string, 'ORDER BY') === false && strpos($db_string, 'INSERT INTO') === false)
 		{
@@ -297,7 +288,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		}
 
 		// Debugging.
-		if (isset(Settings::$database['db_show_debug']) && Settings::$database['db_show_debug'] === true)
+		if ($this->_debugMode)
 		{
 			// Get the file and line number this function was called.
 			list ($file, $line) = $this->error_backtrace('', '', 'return', __FILE__, __LINE__);
@@ -343,19 +334,13 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 			$clean .= substr($db_string, $old_pos);
 			$clean = trim(strtolower(preg_replace($allowed_comments_from, $allowed_comments_to, $clean)));
 
-			// We don't use UNION in SMF, at least so far.  But it's useful for injections.
-			if (strpos($clean, 'union') !== false && preg_match('~(^|[^a-z])union($|[^[a-z])~s', $clean) != 0)
-				$fail = true;
 			// Comments?  We don't use comments in our queries, we leave 'em outside!
-			elseif (strpos($clean, '/*') > 2 || strpos($clean, '--') !== false || strpos($clean, ';') !== false)
+			if (strpos($clean, '/*') > 2 || strpos($clean, '--') !== false || strpos($clean, ';') !== false)
 				$fail = true;
 			// Trying to change passwords, slow us down, or something?
 			elseif (strpos($clean, 'sleep') !== false && preg_match('~(^|[^a-z])sleep($|[^[_a-z])~s', $clean) != 0)
 				$fail = true;
 			elseif (strpos($clean, 'benchmark') !== false && preg_match('~(^|[^a-z])benchmark($|[^[a-z])~s', $clean) != 0)
-				$fail = true;
-			// Sub selects?  We don't use those either.
-			elseif (preg_match('~\([^)]*?select~s', $clean) != 0)
 				$fail = true;
 
 			if (!empty($fail))
@@ -370,7 +355,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 			$ret = $this->error($db_string, $connection);
 
 		// Debugging.
-		if (isset(Settings::$database['db_show_debug']) && Settings::$database['db_show_debug'] === true)
+		if ($this->_debugMode)
 			$this->_logger->setQueryTime($st);
 
 		return $ret;
@@ -390,16 +375,13 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	/**
      * Retrieve insert ID
      *
-	 * @param $table
-	 * @param null $field
-	 * @param null $connection
+	 * @param string $table=null
+	 * @param string $field=null
+	 * @param resource $connection=null
 	 * @return int
 	 */
-	function insert_id($table, $field = null, $connection = null)
+	function insert_id($table = null, $field = null, $connection = null)
 	{
-		$table = str_replace('{db_prefix}', $this->_db_prefix, $table);
-
-		// MySQL doesn't need the table or field information.
 		return mysql_insert_id($connection === null ? $this->connection() : $connection);
 	}
 
@@ -444,37 +426,11 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 		$query_error = mysql_error($connection);
 		$query_errno = mysql_errno($connection);
 
-		// Error numbers:
-		//    1016: Can't open file '....MYI'
-		//    1030: Got error ??? from table handler.
-		//    1034: Incorrect key file for table.
-		//    1035: Old key file for table.
-		//    1205: Lock wait timeout exceeded.
-		//    1213: Deadlock found.
-		//    2006: Server has gone away.
-		//    2013: Lost connection to server during query.
-
 		// Log the error.
-        $enableErrorQueryLogging = Config::get('enableErrorQueryLogging');
 		if ($query_errno != 1213 && $query_errno != 1205 && !empty($this->_logger))
-			$this->_logger->logError(Language::getLanguage()->get('database_error') . ': ' . $query_error . (!empty($enableErrorQueryLogging) ? "\n\n$db_string" : ''), 'database', $file, $line);
+			$this->_logger->logError('database_error: ' . $query_error . 'database', $file, $line);
 
-		// @todo quickRepair(), retryQuery()
-
-		// Nothing's defined yet... just die with it.
-		// die($query_error);
-
-		// if (allowedTo('admin_forum'))
-		//	$error_message = nl2br($query_error) . '<br />' . Language::getLanguage()->get('file') . ': ' . $file . '<br />' . Language::getLanguage()->get('line') . ': ' . $line;
-		//else
-		$error_message = Language::getLanguage()->get('try_again');
-
-		//if (allowedTo('admin_forum') && isset(Settings::$database['db_show_debug']) && Settings::$database['db_show_debug'] === true)
-		//{
-		//	$error_message .= '<br /><br />' . nl2br($db_string);
-		//}
-
-		throw new Exception($error_message, 0, null, 'database');
+		throw new Exception('core_database_error', 0, null, 'database');
 	}
 
 	/**
@@ -629,45 +585,11 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	}
 
 	/**
-	 * Attempt to reinitiate the connection when it may have been dropped for reasons that may be bypassed.
-	 * (i.e. when the connection is lost)
-	 *
-	 * @return null
-	 */
-	function reinitiate()
-	{
-		// TODO: Implement reinitiate() method.
-		// we don't know how to reinitiate a connection. :P
-		return null;
-	}
-
-    /**
-     *
-     */
-	function quickRepair()
-	{
-
-	}
-
-    /**
-     * @param $db_string
-     * @throws \smCore\Exception
-     */
-	function retryQuery($db_string)
-	{
-		throw new Exception('core_not_implemented');
-
-		// @todo clean this mess
-		// Database error auto fixing
-
-	}
-
-	/**
 	 * Whether the database system is case sensitive.
 	 *
 	 * @return bool
 	 */
-	function isCaseSensitive()
+	function is_case_sensitive()
 	{
 		return false;
 	}
@@ -804,7 +726,7 @@ class DefaultMysqlAdapter extends DatabaseAdapter
 	/**
 	 * @return bool
 	 */
-	function isSybase()
+	function is_sybase()
 	{
 		return false;
 	}

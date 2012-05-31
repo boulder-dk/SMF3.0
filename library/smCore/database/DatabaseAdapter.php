@@ -61,14 +61,6 @@ abstract class DatabaseAdapter
 	abstract function connection($type = 'write');
 
 	/**
-	 * Fix up the prefix so it doesn't require the database to be selected.
-	 *
-	 * @param $db_prefix
-	 * @param $db_name
-	 */
-	abstract function fix_prefix(&$db_prefix, $db_name);
-
-	/**
 	 * Callback for preg_replace_calback on the query.
 	 * It allows to replace on the fly a few pre-defined strings, for
 	 * convenience ('query_see_board', 'query_wanna_see_board'), with
@@ -110,11 +102,11 @@ abstract class DatabaseAdapter
 	/**
 	 * insert_id
 	 *
-	 * @param string $table
+	 * @param string $table = null
 	 * @param string $field = null
 	 * @param resource $connection = null
 	 */
-	abstract function insert_id($table, $field = null, $connection = null);
+	abstract function insert_id($table = null, $field = null, $connection = null);
 
 	/**
 	 * Do a transaction.
@@ -166,19 +158,11 @@ abstract class DatabaseAdapter
 	abstract function escape_wildcard_string($string, $translate_human_wildcards=false);
 
 	/**
-	 * Attempt to reinitiate the connection when it may have been dropped for reasons that may be bypassed.
-	 * (i.e. when the connection is lost)
-	 *
-	 * @abstract
-	 */
-	abstract function reinitiate();
-
-	/**
 	 * Whether the database system is case sensitive.
 	 *
 	 * @abstract
 	 */
-	abstract function isCaseSensitive();
+	abstract function is_case_sensitive();
 
 	/**
 	 * Number of rows returned in the result.
@@ -283,5 +267,5 @@ abstract class DatabaseAdapter
 	 * @abstract
 	 * @return bool
 	 */
-	abstract function isSybase();
+	abstract function is_sybase();
 }
